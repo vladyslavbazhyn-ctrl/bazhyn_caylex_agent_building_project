@@ -18,6 +18,10 @@ from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+APP_DIR = os.path.dirname(CURRENT_DIR)
+SERVER_DIR = os.path.join(APP_DIR, "mcp_servers")
+
 load_dotenv()
 gcp_key = os.getenv("GCP_API_KEY")
 
@@ -49,21 +53,26 @@ def summarize_case(key_findings: List[str], next_steps: str):
 
 
 async def load_mcp_tools():
-    """Connects to the 3 separate MCP servers."""
+    """Connects to the 3 separate MCP servers using absolute paths."""
+
+    # helper to build the command args
+    def get_server_args(script_name):
+        return [os.path.join(SERVER_DIR, script_name)]
+
     client = MultiServerMCPClient({
         "crm": {
             "command": sys.executable,
-            "args": ["server_crm.py"],
+            "args": get_server_args("server_crm.py"),
             "transport": "stdio",
         },
         "oms": {
             "command": sys.executable,
-            "args": ["server_oms.py"],
+            "args": get_server_args("server_oms.py"),
             "transport": "stdio",
         },
         "comms": {
             "command": sys.executable,
-            "args": ["server_comms.py"],
+            "args": get_server_args("server_comms.py"),
             "transport": "stdio",
         }
     })
@@ -126,11 +135,11 @@ def build_graph(tools: tool) -> CompiledStateGraph:
         return END
 
     workflow = StateGraph(AgentState)
-    workflow.add_node("agent", agent_node)
+    workflow.add_node("agents", agent_node)
     workflow.add_node("tools", ToolNode(tools))
 
-    workflow.add_edge(START, "agent")
-    workflow.add_conditional_edges("agent", should_continue, ["tools", END])
-    workflow.add_edge("tools", "agent")
+    workflow.add_edge(START, "agents")
+    workflow.add_conditional_edges("agents", should_continue, ["tools", END])
+    workflow.add_edge("tools", "agents")
 
     return workflow.compile(checkpointer=MemorySaver(), interrupt_before=["tools"])

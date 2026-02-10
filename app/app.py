@@ -1,7 +1,12 @@
+import os
+import sys
+
 import streamlit as st
 import asyncio
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
-from agent import load_mcp_tools, build_graph, policy_lookup, summarize_case, get_current_date
+from agents.agent import load_mcp_tools, build_graph, policy_lookup, summarize_case, get_current_date
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 st.set_page_config(page_title="JewelryOps Agent (MCP)", page_icon="💎", layout="wide")
 st.title("💎 JewelryOps (MCP Architecture)")
@@ -94,7 +99,7 @@ if "graph" in st.session_state:
         sensitive = [t for t in tool_calls if t["name"].startswith("action_")]
 
         if sensitive:
-            st.warning(f"⚠️ **APPROVAL REQUIRED**: The agent wants to execute: `{[t['name'] for t in sensitive]}`")
+            st.warning(f"⚠️ **APPROVAL REQUIRED**: The agents wants to execute: `{[t['name'] for t in sensitive]}`")
             col1, col2 = st.columns(2)
 
             if col1.button("✅ Approve Action"):
