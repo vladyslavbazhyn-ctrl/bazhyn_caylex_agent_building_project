@@ -90,17 +90,23 @@ def build_graph(tools: tool) -> CompiledStateGraph:
     1. **NO GUESSING:** You must strictly retrieve IDs and status from the database. 
        - Never invent an Order ID or Policy.
        - If a tool returns "No results", state that clearly.
+    
+    2. **DYNAMIC SEQUENCE:** You are responsible for the workflow. Choose the sequence of tools based on the user's prompt and the data you discover along the way. Do not blindly follow a list.
+    
+    3. **EFFICIENCY (BATCHING):** - Always attempt to call multiple tools in parallel to save time. 
+       - Example: If you have an Order ID, call `get_order_details`, `check_inventory`, and `policy_lookup` in the SAME turn.
+       - Do not wait for one result before asking for the next independent fact.
 
-    2. **TRIANGULATE DATA:** Do not rely on a single data point. Cross-reference CRM data with OMS data to ensure accuracy.
+    4. **TRIANGULATE DATA:** Do not rely on a single data point. Cross-reference CRM data with OMS data to ensure accuracy.
 
-    3. **HANDLE AMBIGUITY:** If a search (e.g., for "Alice") returns an "AMBIGUOUS_MATCH" error, you MUST stop and ask the user to clarify. Do not guess.
+    5. **HANDLE AMBIGUITY:** If a search (e.g., for "Alice") returns an "AMBIGUOUS_MATCH" error, you MUST stop and ask the user to clarify. Do not guess.
 
-    4. **DEEP DIVE:** When investigating an issue, be exhaustive. 
+    6. **DEEP DIVE:** When investigating an issue, be exhaustive. 
        - Check the Order details.
        - Check the Inventory (even for refunds, to see if replacement is an option).
        - Check the specific Policy (Return vs Warranty).
 
-    5. **SAFETY FIRST:** Always ask for confirmation before taking actions with side effects (refunds, emails, or saving notes).
+    7. **SAFETY FIRST:** Always ask for confirmation before taking actions with side effects (refunds, emails, or saving notes).
 
     Do not skip steps. Be thorough and professional.
     """
