@@ -37,6 +37,12 @@ def policy_lookup(query: str):
 
 
 @tool
+def get_current_date() -> str:
+    """Check today's date."""
+    return datetime.datetime.today().strftime("%Y-%m-%d")
+
+
+@tool
 def summarize_case(key_findings: List[str], next_steps: str):
     """Use this to summarize a complex investigation before finishing."""
     return f"CASE SUMMARY:\nFindings: {'; '.join(key_findings)}\nNext Steps: {next_steps}"
@@ -79,6 +85,8 @@ def build_graph(tools: tool) -> CompiledStateGraph:
 
     SYSTEM_INSTRUCTION = """You are the JewelryOps Senior Support Agent.
 
+    PROTOCOL & RULES:
+
     1. **NO GUESSING:** You must strictly retrieve IDs and status from the database. 
        - Never invent an Order ID or Policy.
        - If a tool returns "No results", state that clearly.
@@ -88,6 +96,9 @@ def build_graph(tools: tool) -> CompiledStateGraph:
     3. **HANDLE AMBIGUITY:** If a search (e.g., for "Alice") returns an "AMBIGUOUS_MATCH" error, you MUST stop and ask the user to clarify. Do not guess.
 
     4. **DEEP DIVE:** When investigating an issue, be exhaustive. 
+       - Check the Order details.
+       - Check the Inventory (even for refunds, to see if replacement is an option).
+       - Check the specific Policy (Return vs Warranty).
 
     5. **SAFETY FIRST:** Always ask for confirmation before taking actions with side effects (refunds, emails, or saving notes).
 
@@ -95,7 +106,7 @@ def build_graph(tools: tool) -> CompiledStateGraph:
     """
 
     def agent_node(state: AgentState) -> dict:
-        time.sleep(2)  # Free version of gemini has limit calls per second.
+        time.sleep(0.5)  # Free version of gemini has limit calls per second.
 
         messages = state["messages"]
         if not isinstance(messages[0], SystemMessage):
