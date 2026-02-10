@@ -79,6 +79,63 @@ This project uses uv for extremely fast dependency management.
 - Create a .env file in the root directory: GCP_API_KEY=AIzaSy...
 
 # ▶️ How to Run it
-Because the MCP servers are launched as subprocesses by the Agent, you only need to run the Streamlit app.
+### Because the MCP servers are launched as subprocesses by the Agent, you only need to run the Streamlit app:
+- uv run streamlit run app/app.py
 
-uv run streamlit run app/app.py
+## 🧪 Test Scenarios & Mock Data
+
+This agent uses an **in-memory SQLite database** populated with mocked data to simulate a real jewelry store environment. 
+You can use the following profiles and scenarios to verify the agent's reasoning capabilities.
+
+### 👥 Mocked Customer Database
+| Name | Email | ID | VIP Status |
+| :--- | :--- | :--- | :--- |
+| **Alice Diamond** | alice.d@example.com | `CUST_001` | ✅ **Yes** |
+| **Alice Silver** | alice.s@example.com | `CUST_999` | ❌ No |
+| **Bob Gold** | bob@example.com | `CUST_002` | ❌ No |
+
+### 📦 Mocked Order History
+| Order ID | Customer | Item | Date | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `ORD_101` | Alice Diamond | Sapphire Necklace | 2023-10-01 | **DELIVERED** |
+| `ORD_102` | Bob Gold | Gold Ring | 2025-01-15 | **PROCESSING** (Stuck) |
+| `ORD_999` | Alice Silver | Gold Necklace | 2025-10-20 | **SHIPPED** |
+
+---
+
+### 🔎 Verification Prompts
+Use these prompts to test the agent:
+
+#### 1. Ambiguity Resolution (Entity Extraction)
+**Goal:** Prove the agent asks clarifying questions when multiple matches are found.
+> **Prompt:** "Find the customer profile for Alice."
+* **Expected Behavior:** The agent detects two "Alices" (Diamond & Silver) and asks the user to specify which one.
+
+#### 2. Complex Reasoning (Policy vs. Context)
+**Goal:** Prove the agent can override standard policy based on order context (Reasoning Loop).
+> **Prompt:** "Bob Gold wants to return his Gold Ring from the last order."
+* **Context:** The order is from Jan 2025 (>30 days ago), which violates the standard return policy.
+* **Expected Behavior:**
+    1.  Agent checks policy -> "Return window expired."
+    2.  Agent checks order status -> "Status is PROCESSING (Never delivered)."
+    3.  **Conclusion:** Agent determines the customer *is* eligible for a refund because the item never arrived, overriding the date check.
+
+#### 3. Human-in-the-Loop (Safety)
+**Goal:** Demonstrate the security interception for sensitive actions.
+> **Prompt:** "Process a refund for Bob Gold's order ORD_102."
+* **Expected Behavior:** The agent calculates the refund is valid, but **stops** before executing. 
+* The UI displays an "Approve/Reject" button. The tool `action_process_refund` only runs after you click "Approve".
+
+#### 4. Inventory & VIP Check
+**Goal:** Verify multi-step database lookups.
+> **Prompt:** "Check the stock for Sapphire Necklace and tell me if Alice Diamond is a VIP."
+* **Expected Behavior:**
+    1.  Queries Inventory -> "5 in Vault A".
+    2.  Queries CRM -> "Alice Diamond is VIP".
+    3.  Combines both into a single concise answer.
+
+#### 5. Any other prompts based on the mocked data.
+**Goal** Verify agent behaviour in unpredictable use cases.
+> **Prompt** "...Any...situation...you...want...to...simulate...for...the...agent..."
+* **Expected Behavior:**
+    1. You should see unscripted work of this agent. Actions depends on your prompt.

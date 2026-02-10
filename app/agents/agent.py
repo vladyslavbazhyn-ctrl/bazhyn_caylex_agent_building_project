@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import logging
 import datetime
 
 from typing import Annotated, TypedDict, List
@@ -17,6 +18,9 @@ from langchain_core.messages import BaseMessage, SystemMessage
 from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
+
+
+logger = logging.getLogger("AGENT")
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_DIR = os.path.dirname(CURRENT_DIR)
@@ -77,9 +81,9 @@ async def load_mcp_tools():
         }
     })
 
-    print("🔌 Connecting to MCP Servers (CRM, OMS, Comms)...")
+    logger.info("🔌 Connecting to MCP Servers (CRM, OMS, Comms)...")
     tools = await client.get_tools()
-    print(f"✅ Loaded {len(tools)} MCP tools.")
+    logger.info(f"✅ Loaded {len(tools)} MCP tools.")
     return tools, client
 
 

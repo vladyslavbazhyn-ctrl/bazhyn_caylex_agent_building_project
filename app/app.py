@@ -1,10 +1,22 @@
 import os
 import sys
-
+import logging
 import streamlit as st
 import asyncio
+
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from agents.agent import load_mcp_tools, build_graph, policy_lookup, summarize_case, get_current_date
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%H:%M:%S",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger("APP")
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
