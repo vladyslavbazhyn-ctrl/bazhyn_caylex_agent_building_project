@@ -81,4 +81,4 @@ This project uses uv for extremely fast dependency management.
 # ▶️ How to Run it
 Because the MCP servers are launched as subprocesses by the Agent, you only need to run the Streamlit app.
 
-uv run streamlit run app.py
+uv run streamlit run app/app.py
