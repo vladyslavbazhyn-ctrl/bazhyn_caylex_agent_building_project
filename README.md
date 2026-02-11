@@ -99,6 +99,10 @@ You can use the following profiles and scenarios to verify the agent's reasoning
 | `ORD_999` | Alice Silver | Gold Necklace | 2025-10-20 | **SHIPPED** |
 
 ---
+### 🔎 For running unit tests
+- Go to the app folder - cd app/
+- Run - pytest tests/
+---
 
 ### 🔎 Verification Prompts
 Use these prompts to test the agent:
