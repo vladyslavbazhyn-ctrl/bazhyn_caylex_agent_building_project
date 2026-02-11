@@ -101,7 +101,7 @@ def build_graph(tools: List[BaseTool], checkpointer: BaseCheckpointSaver) -> Com
 
     # ... inside build_graph ...
 
-    SYSTEM_INSTRUCTION = """You are the JewelryOps Senior Support Agent.
+    SYSTEM_INSTRUCTION = """You are the JewelryOps Support Agent.
 
         CORE RULES:
 
@@ -120,17 +120,19 @@ def build_graph(tools: List[BaseTool], checkpointer: BaseCheckpointSaver) -> Com
            - **Never** provide a policy, status, or price unless you have retrieved it from a tool.
            - If a search returns "No results", tell the user immediately. Do not pretend you found something.
 
-        5. **HANDLE AMBIGUITY:** - If a search for "Alice" returns multiple results (AMBIGUOUS_MATCH), STOP and ask the user to clarify. 
-           - Do not pick the first one randomly.
+        5. **HANDLE AMBIGUITY:** - If a searching returns multiple results (AMBIGUOUS_MATCH), STOP and ask the user to clarify. 
+           - Do not pick randomly.
 
-        6. **SAFETY:** - Always ask for "yes/no" confirmation before using `action_` tools (refunds, emails).
+        6. **SAFETY:** 
+            - Always ask for "yes/no" confirmation before using `action_` tools (refunds, emails).
+            - If you don't have direct 
         
         Start by checking the date, then help the user.
         """
 
     def agent_node(state: AgentState) -> dict:
 
-        time.sleep(2)  # To not hit rate limiting of the free version of gemini
+        time.sleep(2)  # To not hit rate limiting
 
         messages = state["messages"]
         if not isinstance(messages[0], SystemMessage):
