@@ -6,7 +6,10 @@ import asyncio
 import streamlit as st
 
 from langgraph.checkpoint.memory import MemorySaver
-from helpers.app_helpers import get_graph_and_client, reset_memory, parse_response, run_async
+
+from agents.agent import load_mcp_tools, build_graph
+
+from typing import Coroutine, Any, TypeVar, Tuple
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -20,6 +23,55 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger("APP")
+
+T = TypeVar("T")
+
+
+# ------ Leave helpers here for simplicity ------
+def parse_response(content: Any) -> str:
+    """Parses JSON response from LLM into a clean string."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        text_parts = []
+        for part in content:
+            if isinstance(part, dict) and "text" in part:
+                text_parts.append(part["text"])
+            elif isinstance(part, str):
+                text_parts.append(part)
+        return "\n".join(text_parts)
+    return str(content)
+
+
+def run_async(coroutine: Coroutine[Any, Any, T]) -> T:
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            future = pool.submit(asyncio.run, coroutine)
+            return future.result()
+    else:
+        return asyncio.run(coroutine)
+
+
+def get_graph_and_client() -> Tuple[Any, Any]:
+    async def _init() -> Tuple[Any, Any]:
+        tools, client = await load_mcp_tools()
+        graph = build_graph(tools, checkpointer=st.session_state.memory)
+        return graph, client
+
+    return run_async(_init())
+
+
+def reset_memory() -> None:
+    st.session_state.thread_id = str(uuid.uuid4())
+    st.session_state.messages = []
+    logger.info(f"Memory cleared. New ID: {st.session_state.thread_id}")
+# ------ End of helpers ------
 
 
 if "memory" not in st.session_state:
@@ -106,7 +158,6 @@ if prompt := st.chat_input("How can I help you today?"):
                             else:
                                 return last_msg.content
 
-
                 full_response = run_async(run_conversation_loop())
 
             if full_response == "__REQUIRE_APPROVAL__":
@@ -156,7 +207,6 @@ try:
                                 if "messages" in event:
                                     last_msg = event["messages"][-1]
                             return last_msg.content if last_msg else ""
-
 
                         raw_result = run_async(resume_sensitive())
                         clean_result = parse_response(raw_result)
