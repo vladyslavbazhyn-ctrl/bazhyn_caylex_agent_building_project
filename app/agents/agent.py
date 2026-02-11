@@ -1,8 +1,9 @@
 import os
 import sys
+import time
 import logging
 import datetime
-import time
+
 from typing import Annotated, TypedDict, List, Literal, Tuple
 
 from dotenv import load_dotenv
@@ -15,7 +16,6 @@ from langgraph.checkpoint.memory import BaseCheckpointSaver
 
 from langchain_core.messages import BaseMessage, SystemMessage
 from langchain_core.tools import tool, BaseTool
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
@@ -79,10 +79,10 @@ async def load_mcp_tools() -> Tuple[List[BaseTool], MultiServerMCPClient]:
         }
     })
 
-    logger.info("🔌 Connecting to MCP Servers (CRM, OMS, Comms)...")
+    logger.info("Connecting to MCP Servers (CRM, OMS, Comms)...")
     tools = await client.get_tools()
     all_tools = tools + [policy_lookup, get_current_date, summarize_case]
-    logger.info(f"✅ Loaded {len(tools)} MCP tools.")
+    logger.info(f"Loaded {len(tools)} MCP tools.")
     return all_tools, client
 
 
