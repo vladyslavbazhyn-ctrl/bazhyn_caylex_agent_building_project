@@ -9,8 +9,11 @@ dependencies = [
     "google-generativeai>=0.8.6",
     "langchain>=1.2.9",
     "langchain-google-genai>=4.2.0",
+    "langchain-groq>=1.1.2",
     "langchain-mcp-adapters>=0.2.1",
     "langchain-openai>=1.1.7",
     "langgraph>=1.0.8",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
     "streamlit>=1.54.0",
 ]

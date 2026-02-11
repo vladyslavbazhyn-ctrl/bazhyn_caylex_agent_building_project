@@ -1,8 +1,19 @@
-from mcp.server.fastmcp import FastMCP
 import sqlite3
+from sqlite3 import Connection
+import logging
+import sys
+from mcp.server.fastmcp import FastMCP
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(name)s] %(levelname)s: %(message)s",
+    stream=sys.stderr
+)
+logger = logging.getLogger("OMS_SERVER")
 
 
-def init_db():
+def init_db() -> Connection:
+    """Initialize in-memory database with mock order data."""
     conn = sqlite3.connect(":memory:", check_same_thread=False)
     cursor = conn.cursor()
 
@@ -34,6 +45,8 @@ mcp = FastMCP("JewelryOMS")
 @mcp.tool()
 def get_customer_orders(customer_id: str) -> str:
     """Returns a list of Order IDs and Dates for a customer. DOES NOT show items or status."""
+    logger.info(f"Fetching orders for Customer: {customer_id}")
+
     cursor = conn.cursor()
     cursor.execute("SELECT id, date FROM orders WHERE customer_id = ?", (customer_id,))
     rows = cursor.fetchall()
@@ -45,11 +58,14 @@ def get_customer_orders(customer_id: str) -> str:
 @mcp.tool()
 def get_order_details(order_id: str) -> str:
     """Get the Status and Items for a specific Order ID."""
+    logger.info(f"Fetching details for Order: {order_id}")
+
     cursor = conn.cursor()
 
     cursor.execute("SELECT status FROM orders WHERE id = ?", (order_id,))
     status_res = cursor.fetchone()
-    if not status_res: return "Order ID not found."
+    if not status_res:
+        return "Order ID not found."
 
     cursor.execute("SELECT item, qty FROM order_items WHERE order_id = ?", (order_id,))
     items_res = cursor.fetchall()
@@ -61,10 +77,11 @@ def get_order_details(order_id: str) -> str:
 @mcp.tool()
 def check_inventory(item_name: str) -> str:
     """Check system stock levels for an item."""
+    logger.info(f"Checking inventory for: {item_name}")
+
     cursor = conn.cursor()
     cursor.execute("SELECT stock, location FROM inventory WHERE item LIKE ?", (f"%{item_name}%",))
-    res = cursor.fetchone()
-    if res:
+    if res := cursor.fetchone():
         return f"Item: {item_name} | System Stock: {res[0]} | Location: {res[1]}"
     return "Item not found in inventory."
 
@@ -72,6 +89,7 @@ def check_inventory(item_name: str) -> str:
 @mcp.tool()
 def action_process_refund(order_id: str, reason: str) -> str:
     """[SIDE EFFECT] Process a full refund. Use ONLY after policy check."""
+    logger.warning(f"PROCESSING REFUND: Order {order_id} | Reason: {reason}")
     return f"SUCCESS: Refund processed for {order_id}. Reason: {reason}"
 
 

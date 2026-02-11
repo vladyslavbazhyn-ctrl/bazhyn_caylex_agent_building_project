@@ -12,7 +12,7 @@ This project implements a Model Context Protocol (MCP) architecture to decouple 
 
 Built on LangGraph.
 
-Uses Google Gemini 2.5 Flash (via Google AI Studio) for decision-making.
+Uses Groq free accessible version for decision-making.
 Maintains conversation state using MemorySaver and add_messages reducer.
 
 ### The Frontend:
@@ -65,18 +65,15 @@ This project uses uv for extremely fast dependency management.
 ## 1. Prerequisites
 - Python 3.10+
 - uv installed
-- you have .env file created according to .env.example
-- Google AI Studio API Key
+- Groq API Key
 
 ## 2. Installation
 ### Clone the repo
 ### Install dependencies:
 - uv sync
-#### OR manually
-- uv add langchain langgraph langchain-google-genai streamlit mcp langchain-mcp-adapters python-dotenv
 
 ## 3. Environment Configuration
-- Create a .env file in the root directory: GCP_API_KEY=AIzaSy...
+- Create a .env file in the root directory: GQ_API_KEY=AIzaSy...
 
 # ▶️ How to Run it
 ### Because the MCP servers are launched as subprocesses by the Agent, you only need to run the Streamlit app:
